@@ -84,3 +84,33 @@ def get_state(queue_lengths):
 # Calculate the reward based on queue length reduction
 def get_reward(previous_queues, current_queues):
     return sum(previous_queues) - sum(current_queues)
+
+
+# Q-learning loop
+for episode in range(30):  # Number of episodes
+    print(f'Episode: {episode}')
+
+    Vissim.Simulation.RunSingleStep()
+
+    state = get_state(get_queue_lengths())
+    action = choose_action(state)
+    action_idx = actions.index(action)
+
+    previous_queues = get_queue_lengths()
+
+    # Set the signal phase and green time in VISSIM
+    phase, green_time = action
+    set_signal_phase(phase, green_time)
+
+    current_queues = get_queue_lengths()
+    reward = get_reward(previous_queues, current_queues)
+
+    next_state = get_state(current_queues)
+    update_q_table(state, action_idx, reward, next_state)
+
+    state = next_state  # Move to the next state
+
+    #if epsilon > epsilon_min:
+       # epsilon *= epsilon_decay
+
+print(q_table)
