@@ -30,3 +30,57 @@ gamma = 0.9     # Discount factor
 epsilon = .1   # Exploration rate
 #epsilon_min = 0.01
 #epsilon_decay = 0.995
+
+# Get queue lengths for each leg
+def get_queue_lengths():
+    queue_lengths = []
+    for i in range(1, 5):  # There are 4 legs, each with its own queue counter
+        queue_length = Vissim.Net.QueueCounters.ItemByKey(i).AttValue('QLen(Current,1)')
+        queue_lengths.append(queue_length)
+    return queue_lengths
+
+# Set the signal phase and green time in VISSIM
+def set_signal_phase(phase, green_time):
+    SignalController = Vissim.Net.SignalControllers.ItemByKey(1)  # Intersection Signal Controller ID
+
+    # Set all phases to red initially
+    for i in range(1, 5):
+        SignalController.SGs.ItemByKey(i).SetAttValue("SigState", "RED")
+
+    # Set the selected phase to green
+    SignalController.SGs.ItemByKey(phase + 1).SetAttValue("SigState", "GREEN")
+
+    # Keep the signal green for the selected green time
+    start_time = Vissim.Simulation.AttValue('SimSec')
+    end_time = start_time + green_time
+    while Vissim.Simulation.AttValue('SimSec') < end_time:
+        Vissim.Simulation.RunSingleStep()
+
+    # Set the selected phase to amber
+    SignalController.SGs.ItemByKey(phase + 1).SetAttValue("SigState", "AMBER")
+
+    # Keep the signal amber for 3 seconds
+    start_time = Vissim.Simulation.AttValue('SimSec')
+    end_time = start_time + 3
+    while Vissim.Simulation.AttValue('SimSec') < end_time:
+        Vissim.Simulation.RunSingleStep()
+
+# Choose the best action (phase and green time) based on the current state
+def choose_action(state):
+    if np.random.rand() <= epsilon:
+        return random.choice(actions)  # Explore
+    else:
+        return actions[np.argmax(q_table[state])]  # Exploit
+
+# Update the Q-table
+def update_q_table(state, action_idx, reward, next_state):
+    best_next_action = np.argmax(q_table[next_state])
+    q_table[state, action_idx] += alpha * (reward + gamma * q_table[next_state, best_next_action] - q_table[state, action_idx])
+
+# Discretize the state based on queue lengths
+def get_state(queue_lengths):
+    return int(sum(queue_lengths) // 10)  # Example: Discretize by summing and dividing
+
+# Calculate the reward based on queue length reduction
+def get_reward(previous_queues, current_queues):
+    return sum(previous_queues) - sum(current_queues)
