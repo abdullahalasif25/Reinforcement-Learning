@@ -24,3 +24,9 @@ state_size = 4  # Queue lengths for each leg
 
 # Q-table (assuming 100 states and the size of the action space)
 q_table = np.zeros((100, num_actions))  # 100 states and num_actions columns
+
+alpha = 0.1     # Learning rate
+gamma = 0.9     # Discount factor
+epsilon = .1   # Exploration rate
+#epsilon_min = 0.01
+#epsilon_decay = 0.995
