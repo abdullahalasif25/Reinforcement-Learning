@@ -7,7 +7,7 @@ import random
 # Connect to Vissim
 Vissim = win32com.client.Dispatch("Vissim.Vissim")
 
-# Load your Vissim network
+# Load Vissim network
 Vissim.LoadNet(r"C:\Users\abdul\OneDrive - BUET\Thesis\Final Final Final\New Market\Present Condition\New Market at present.inpx")
 Vissim.LoadLayout(r"C:\Users\abdul\OneDrive - BUET\Thesis\Final Final Final\New Market\Present Condition\New Market at present.layx")
 # Load the Scenario
